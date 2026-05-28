@@ -1,0 +1,20 @@
+{
+  "name": "tilda-dashboard-assignment",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Tilda online coding assignment — medical-fee statistics dashboard",
+  "scripts": {
+    "prebuild": "pnpm --filter @tilda/shared build",
+    "dev": "pnpm --filter @tilda/shared build && pnpm -r --parallel --filter \"./apps/*\" --filter @tilda/shared dev",
+    "dev:api": "pnpm --filter @tilda/shared build && pnpm --filter @tilda/api dev",
+    "dev:web": "pnpm --filter @tilda/shared build && pnpm --filter @tilda/web dev",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm --filter @tilda/shared build && pnpm -r typecheck",
+    "prisma:migrate": "pnpm --filter @tilda/api prisma:migrate",
+    "prisma:generate": "pnpm --filter @tilda/api prisma:generate"
+  },
+  "packageManager": "pnpm@9.15.9",
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

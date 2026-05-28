@@ -1,0 +1,57 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: tilda-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: tilda
+      POSTGRES_PASSWORD: tilda
+      POSTGRES_DB: tilda
+    ports:
+      - "5434:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tilda -d tilda"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: tilda-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DATABASE_URL: postgresql://tilda:tilda@postgres:5432/tilda?schema=public
+      JWT_SECRET: ${JWT_SECRET:-dev-only-secret-change-me}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+      DATA_GO_KR_API_KEY: ${DATA_GO_KR_API_KEY:-YOUR_DATA_GO_KR_KEY_HERE}
+      DATA_GO_KR_BASE_URL: ${DATA_GO_KR_BASE_URL:-https://api.odcloud.kr/api}
+      DATA_GO_KR_DATASET_PATH: ${DATA_GO_KR_DATASET_PATH:-/15139382/v1/uddi:638707af-cc4b-48e5-9ff8-938aae8b637a}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+    ports:
+      - "4000:4000"
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: tilda-web
+    restart: unless-stopped
+    depends_on:
+      - api
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4000/api}
+    ports:
+      - "3000:3000"
+
+volumes:
+  pgdata:
